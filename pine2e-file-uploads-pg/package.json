@@ -1,0 +1,23 @@
+{
+  "author": "Andrey Tarantsov <andrey@tarantsov.com>",
+  "name": "pine2e-file-uploads-pg",
+  "description": "Pine2e plugin that handles file/image uploads and stores the uploaded data in a PostgreSQL database",
+  "version": "0.1.0",
+  "homepage": "https://github.com/pinetwo/pine2e",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "./node_modules/mocha/bin/mocha -R ${REPORTER-spec}",
+    "cov": "rm -rf lib-cov; jscoverage lib lib-cov; env JSLIB=lib-cov mocha -R dot && env JSLIB=lib-cov mocha -R html-cov >coverage.html; open coverage.html"
+  },
+  "dependencies": {
+    "debug": "~0.7.0"
+  },
+  "devDependencies": {
+    "mocha": "~1.0",
+    "coffee-script": "~1.7.0"
+  },
+  "optionalDependencies": {},
+  "engines": {
+    "node": "*"
+  }
+}
