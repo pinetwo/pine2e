@@ -8,8 +8,21 @@ Pinetwo's pluggable web stack based on Express.js and PostgreSQL.
     npm install pine2e
 
 
-## Usage
+## Creating Pine2e apps
 
+TODO.
+
+Envs: `.env`, `.env.staging`, `.env.production`, etc.
+
+Git remotes: for env `staging` you can call the remote `staging` or `heroku-staging`.
+
+
+## Grunt tasks
+
+Run these from your app:
+
+* `p2e:schema:dump`
+* `p2e:deploy:staging`, `p2e:deploy:production` (you can use any env here)
 
 
 ## Tests
