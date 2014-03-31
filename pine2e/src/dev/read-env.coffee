@@ -4,7 +4,7 @@ readFile = (name, data) ->
   if fs.existsSync(name)
     lines = fs.readFileSync(name, 'utf8').split("\n")
     for line in lines
-      if M = line.match ///^ \s* (\S+) \s* = (.*) $///
+      if M = line.match ///^ \s* ([^=\s]+) \s* = (.*) $///
         data[M[1].trim()] = M[2].trim()
     return data
   else if fs.existsSync(name + '.sample')

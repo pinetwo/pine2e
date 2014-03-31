@@ -24,6 +24,8 @@ exports.createRootApp = createRootApp = (libDir) ->
 exports.createRootApp = createRootApp
 
 exports.parsePgOptions = require('./utils/parse-pg-options')
+exports.applyPgOptions = require('./utils/apply-pg-options')
+
 # for running tests
 exports.readEnv = require('./dev/read-env').readEnv
 exports.applyEnv = require('./dev/read-env').applyEnv

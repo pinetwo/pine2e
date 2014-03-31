@@ -12,14 +12,18 @@
   "dependencies": {
     "debug": "~0.7.0",
     "express": "^3.5.1",
-    "streamline-express": "^0.3.1"
+    "streamline-express": "^0.3.1",
+    "shelljs": "^0.2.6"
   },
   "devDependencies": {
     "mocha": "~1.0",
     "coffee-script": "~1.7.0"
   },
+  "peerDependencies": {
+    "grunt": "~0.4.1"
+  },
   "optionalDependencies": {},
   "engines": {
-    "node": "*"
+    "node": ">= 0.10.0"
   }
 }
