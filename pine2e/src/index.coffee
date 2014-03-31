@@ -22,3 +22,7 @@ exports.createRootApp = createRootApp = (libDir) ->
   return app
 
 exports.createRootApp = createRootApp
+
+# for running tests
+exports.readEnv = require('./dev/read-env').readEnv
+exports.applyEnv = require('./dev/read-env').applyEnv
