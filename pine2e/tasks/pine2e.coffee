@@ -9,6 +9,8 @@ module.exports = (grunt) ->
 
   whichGit = -> (shell.which('git') or grunt.fatal('git not found in PATH'))
 
+  whichHeroku = -> (shell.which('heroku') or grunt.fatal('heroku binary not found in PATH'))
+
 
   findGitRemotes = (callback) ->
     # alt: args = ['for-each-ref', '--format', '%(refname)', 'refs/remotes/*/*']
@@ -29,38 +31,67 @@ module.exports = (grunt) ->
     unless pg_dump = shell.which('pg_dump')
       grunt.fatal('pg_dump not found in PATH; pg_dump is required to run p2e:dump-schema')
 
-    grunt.log.writeln("Dumping #{options.host}/#{options.dbname}...")
+    done = @async()
 
-    callback = @async()
+    grunt.log.writeln("Dumping #{options.host}/#{options.dbname}...")
     grunt.util.spawn { cmd: pg_dump, args: ['--schema-only', '--no-owner', '--no-acl', '--no-security-labels', '--no-tablespaces'] }, (err, result, code) =>
-      if err
-        grunt.fatal(err)
-      else
-        result = result.stdout
-          .split("\n")
-          .filter((ln) -> !ln.match(/^(--|SET|CREATE EXTENSION|COMMENT ON|ALTER .* OWNED BY)/))
-          .join("\n")
-          .replace(/\n{3,}/g, "\n\n")
-          .trim()
-        grunt.file.write('schema.sql', result)
+      return done(err) if err
+
+      result = result.stdout
+        .split("\n")
+        .filter((ln) -> !ln.match(/^(--|SET|CREATE EXTENSION|COMMENT ON|ALTER .* OWNED BY)/))
+        .join("\n")
+        .replace(/\n{3,}/g, "\n\n")
+        .trim()
+      grunt.file.write('schema.sql', result)
+      grunt.log.ok()
+
+      done()
+
+
+  grunt.registerTask "p2e:db:copy", "Copy database from env1 to env2 (e.g. p2e:db:copy:production:staging)", (env1, env2) ->
+    grunt.fatal("Missing env name in #{@nameArgs}, use e.g. #{@nameArgs}:production:staging") unless env1 and env2
+    grunt.fatal("env1 == env2") if env1 == env2
+
+    vars1 = pine2e.readEnv(env1)
+    vars2 = pine2e.readEnv(env2)
+    grunt.fatal("HEROKU_APP config var not defined for #{env1} in .env.#{env1}") unless vars1.HEROKU_APP
+    grunt.fatal("HEROKU_APP config var not defined for #{env2} in .env.#{env2}") unless vars2.HEROKU_APP
+    grunt.fatal("HEROKU_APP is the same for #{env1} and #{env2}") if vars1.HEROKU_APP == vars2.HEROKU_APP
+
+    grunt.fatal("Refusing to copy into #{env2}") if env2 == 'production'
+
+    done = @async()
+
+    grunt.log.writeln("Obtaining backup URL for #{vars1.HEROKU_APP}...")
+    grunt.util.spawn { cmd: whichHeroku(), args: ['pgbackups:url', '--app', vars1.HEROKU_APP] }, (err, result, code) =>
+      return done(err) if err
+
+      url = result.stdout.split("\n")[0]
+      grunt.fatal("Invalid URL") unless require('url').parse(url)?.protocol == 'https:'
+
+      grunt.log.writeln("Backup URL: #{url}")
+
+      grunt.log.writeln("Restoring into #{vars2.HEROKU_APP}...")
+      grunt.util.spawn { cmd: whichHeroku(), args: ['pgbackups:restore', '--app', vars2.HEROKU_APP, 'DATABASE_URL', url], opts: { stdio: 'inherit' } }, (err, result, code) =>
+        return done(err) if err
+
         grunt.log.ok()
+        done()
 
 
   grunt.registerTask "p2e:deploy", "Deploy Pine2e app", (env) ->
     requireEnvArg(this, env)
-    pine2e.readEnv(env)  # for error messages
+    vars = pine2e.readEnv(env)
 
     done = @async()
     findGitRemotes (err, remotes) =>
       return grunt.fatal(err) if err
 
-      names = [env, "heroku-#{env}"]
-      for name in names
-        if name in remotes
-          remote = env
+      remote = vars.GIT_REMOTE or env
 
-      unless remote
-        grunt.fatal("Cannot find a Git remote for env #{env}; none of acceptable choices #{JSON.stringify names} found among #{JSON.stringify remotes}")
+      unless remote in remotes
+        grunt.fatal("Cannot find Git remote #{JSON.stringify remote} for env #{JSON.stringify env}; available remotes are #{JSON.stringify remotes}")
 
       # TODO: delay
 

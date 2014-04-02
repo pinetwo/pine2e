@@ -10,11 +10,16 @@ Pinetwo's pluggable web stack based on Express.js and PostgreSQL.
 
 ## Creating Pine2e apps
 
-TODO.
+Store per-environments Heroku config vars in e.g. `.env.staging`, `.env.production`, etc.
 
-Envs: `.env`, `.env.staging`, `.env.production`, etc.
+Run the app using:
 
-Git remotes: for env `staging` you can call the remote `staging` or `heroku-staging`.
+    foreman start -f Procfile.dev -e .env.staging
+
+Aside from Heroku config variables, you can set:
+
+* `HEROKU_APP` (must be set to run any Heroku-dependent commands, excluding p2e:deploy)
+* `GIT_REMOTE` (defaults to the environment's name)
 
 
 ## Grunt tasks
@@ -22,6 +27,7 @@ Git remotes: for env `staging` you can call the remote `staging` or `heroku-stag
 Run these from your app:
 
 * `p2e:schema:dump`
+* `p2e:p2e:db:copy:production:staging` copy DB from production to staging
 * `p2e:deploy:staging`, `p2e:deploy:production` (you can use any env here)
 
 
