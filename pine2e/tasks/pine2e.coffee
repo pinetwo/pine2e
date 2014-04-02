@@ -119,3 +119,19 @@ module.exports = (grunt) ->
 
         grunt.log.ok()
         done()
+
+
+  grunt.registerTask "p2e:heroku", "Run an arbitrary Heroku command for the given env (e.g. p2e:heroku:production:ps)", (env, cmdparts...) ->
+    grunt.fatal("Missing env name in #{@nameArgs}, use e.g. #{@nameArgs}:production:ps") unless env
+    grunt.fatal("Missing the command to run, use e.g. #{@nameArgs}:production:ps") unless cmdparts.length > 0
+
+    vars = pine2e.readEnv(env)
+    grunt.fatal("HEROKU_APP config var not defined for #{env} in .env.#{env}") unless vars.HEROKU_APP
+
+    done = @async()
+
+    args = [cmdparts.join(':'), '--app', vars.HEROKU_APP]
+    grunt.log.writeln("heroku #{args.join(' ')}")
+
+    grunt.util.spawn { cmd: whichHeroku(), args: args, opts: { stdio: 'inherit' } }, (err, result, code) =>
+      done(err)

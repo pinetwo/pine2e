@@ -10,6 +10,12 @@ Pinetwo's pluggable web stack based on Express.js and PostgreSQL.
 
 ## Creating Pine2e apps
 
+Predefined environments:
+
+* dev (used by default for migrations, for dumping schema etc)
+* staging (no special treatment currently)
+* production (additional precautions for production deployment, db:copy refuses to overwrite production db)
+
 Store per-environments Heroku config vars in e.g. `.env.staging`, `.env.production`, etc.
 
 Run the app using:
@@ -24,11 +30,27 @@ Aside from Heroku config variables, you can set:
 
 ## Grunt tasks
 
-Run these from your app:
+Be sure to `npm install -g grunt-cli` if you haven't already.
 
-* `p2e:schema:dump`
-* `p2e:p2e:db:copy:production:staging` copy DB from production to staging
-* `p2e:deploy:staging`, `p2e:deploy:production` (you can use any env here)
+To dump the schema of ‘dev’ environment's database into schema.sql:
+
+    grunt p2e:schema:dump
+
+To copy the database from production to staging, overwriting the staging database:
+
+    grunt p2e:db:copy:production:staging
+
+To deploy:
+
+    p2e:deploy:staging
+    p2e:deploy:production
+
+To run an arbitrary Heroku command in the given environment's app:
+
+    p2e:heroku:staging:ps
+    p2e:heroku:staging:config
+    p2e:heroku:staging:pgbackups:restore
+    # note: currently there's no way to pass arguments
 
 
 ## Tests
