@@ -15,5 +15,8 @@ module.exports = parsePgOptions = (options) ->
       dbname: dbname
     }
 
+  else if options and (typeof options is 'object') and (options.constructor is Object)
+    return options
+
   else
-    throw new Error("Unsupported type of PG options: " + options)
+    throw new Error("Unsupported type of PG options: #{typeof options} " + options)
