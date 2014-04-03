@@ -14,7 +14,7 @@ exports.nodeify = require('nodeify');
 
 var express = exports.express = require('./bits/express-with-patches');
 
-exports.createRootApp = createRootApp;
+exports.createRootApp = require('./bits/root-app');
 
 exports.parsePgOptions = require('./utils/parse-pg-options');
 exports.applyPgOptions = require('./utils/apply-pg-options');
@@ -37,27 +37,9 @@ exports.argsToSqlParams  = require('./utils/query-to-sql-params').argsToSqlParam
 exports.expandCb = require('./utils/expand-multi-param-callback');
 exports.rescueUniqueViolation = require('./utils/unique-violation');
 
-exports.context = require('./bits/context');
+var context = exports.context = require('./bits/context');
+exports.globalCtx = context.createContext();
 
 // for running tests
 exports.readEnv = require('./dev/read-env').readEnv;
 exports.applyEnv = require('./dev/read-env').applyEnv;
-
-
-var Path = require('path');
-
-function createRootApp(libDir) {
-  var app = express();
-
-  require('./bits/express-init')(app);
-  require('./bits/express-dirs')(app);
-
-  app.dirs.root = Path.dirname(libDir);
-  app.dirs.lib = libDir;
-  app.dirs.assets = app.subdir('root', 'assets');
-  app.dirs.views = app.subdir('root', 'views');
-
-  app.set('views', app.dirs.views);
-
-  return app;
-}

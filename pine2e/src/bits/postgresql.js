@@ -21,6 +21,10 @@ exports.beginTx = beginTx;
 exports.commitTx = commitTx;
 exports.rollbackTx = rollbackTx;
 
+exports.withTx = withTx;
+exports.requiresTx = requiresTx;
+exports.requestRequiresTx = requestRequiresTx;
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // basic PostgreSQL configuration and operations
@@ -56,12 +60,16 @@ function initContext(ctx) {
 }
 
 function disposeContext(ctx) {
-  finishTransaction(ctx, true).done();
+  return finishTransaction(ctx, true);
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // transaction and connection management
+
+function isInsideTx(ctx) {
+  return !!ctx.pgTxClient;
+}
 
 function beginTx(ctx) {
   if (ctx.isLongLived) {
@@ -135,5 +143,41 @@ function extractSingleValue(row) {
       return row[keys[0]];
     else
       return when.reject(new Error("queryValue result row has multiple keys: " + JSON.stringify(keys)));
+  }
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// transaction helpers
+
+function withTx(ctx, body, ...args) {
+  if (isInsideTx(ctx)) {
+    return body.apply(this, args);
+  } else {
+    return beginTx(ctx).then(() => body()).catch(() => rollbackTx(ctx)).tap(() => commitTx(ctx));
+  }
+}
+
+function requiresTx(func) {
+  return function(ctx) {
+    if (isInsideTx(ctx)) {
+      return func.apply(this, arguments);
+    } else {
+      return beginTx(ctx).then(() => func.apply(this, arguments)).catch(() => rollbackTx(ctx)).tap(() => commitTx(ctx));
+    }
+  }
+}
+
+function requestRequiresTx(req, res, next) {
+  var ctx = req.ctx;
+  if (!ctx) {
+    return next();
+  }
+
+  if (isInsideTx(ctx)) {
+    next();
+  } else {
+    // the transaction will end when the request ends
+    beginTx(ctx).catch(next).then(() => next());
   }
 }

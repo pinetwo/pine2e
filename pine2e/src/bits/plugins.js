@@ -23,15 +23,17 @@ function installPlugin(plugin) {
 
 
 function callPluginFuncs(name, ...args) {
-  applyPluginFuncs(name, args);
+  return applyPluginFuncs(name, args);
 }
 
 
 function applyPluginFuncs(name, args) {
+  var results = [];
   for (var plugin of _plugins) {
     let func = plugin[name];
     if (typeof(func) === 'function') {
-      func.apply(plugin, args);
+      results.push(func.apply(plugin, args));
     }
   }
+  return results;
 }

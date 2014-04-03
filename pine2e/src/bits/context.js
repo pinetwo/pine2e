@@ -1,5 +1,6 @@
 var whenHttpRequestFinished = require('../utils/http-finish');
 var plugins = require('./plugins');
+var when = require('when');
 
 class Context {
   constructor() {
@@ -7,7 +8,7 @@ class Context {
   }
 
   dispose() {
-    plugins.call('disposeContext', this);
+    return when.all(plugins.call('disposeContext', this));
   }
 }
 
@@ -17,7 +18,9 @@ class RequestContext extends Context {
     this.res = res;
     super();
 
-    whenHttpRequestFinished(req, res, this.dispose.bind(this));
+    whenHttpRequestFinished(req, res, () => {
+      this.dispose().done();
+    });
   }
 }
 
