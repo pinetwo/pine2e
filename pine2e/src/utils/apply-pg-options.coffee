@@ -4,4 +4,6 @@ module.exports = (options) ->
   process.env.PGHOST     = options.host
   process.env.PGPORT     = options.port or 5432
   process.env.PGDATABASE = options.dbname
-  process.env.PGSSLMODE  = 'require'
+
+  if (options.ssl == null) || (options.ssl == true)
+    process.env.PGSSLMODE = 'require'
