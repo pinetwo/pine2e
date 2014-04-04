@@ -2,7 +2,7 @@
   "author": "Andrey Tarantsov <andrey@tarantsov.com>",
   "name": "pine2e",
   "description": "Pinetwo's pluggable web stack based on Express.js and PostgreSQL",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "homepage": "https://github.com/pinetwo/pine2e",
   "main": "lib/index.js",
   "scripts": {
