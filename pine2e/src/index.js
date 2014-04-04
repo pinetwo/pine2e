@@ -31,6 +31,7 @@ exports.rescueUniqueViolation = require('./utils/unique-violation');
 
 var context = exports.context = require('./bits/context');
 exports.globalCtx = context.createContext();
+exports.wrap = context.wrap;
 
 // for running tests
 exports.readEnv = require('./dev/read-env').readEnv;
