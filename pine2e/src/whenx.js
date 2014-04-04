@@ -15,6 +15,7 @@ when.cb = ((pv, cb) => when(pv).cb(cb));
 
 var transforms = {};
 transforms.get = P_get;
+transforms.getIfObject = P_getIfObject;
 transforms.call = P_call;
 transforms.apply = P_apply;
 transforms.ifTrue = P_ifTrue;
@@ -46,6 +47,10 @@ for (let name in transforms) {
 
 function P_get(key) {
   return (value) => (isNonNullObject(value) ? value[key] : undefined);
+}
+
+function P_getIfObject(key) {
+  return (value) => (value == null ? null : (isNonNullObject(value) ? value[key] : value));
 }
 
 function P_call(methodName, ...args) {
