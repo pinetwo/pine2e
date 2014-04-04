@@ -7,6 +7,10 @@ class Context {
     plugins.call('initContext', this);
   }
 
+  subcontext() {
+    return new Context();
+  }
+
   dispose() {
     return when.all(plugins.call('disposeContext', this));
   }
@@ -26,6 +30,10 @@ class RequestContext extends Context {
     this.wrappedReq = Object.create(req);
     this.wrappedRes = Object.create(res);
   }
+
+  subcontext() {
+    return new RequestContext(this.req, this.res);
+  }
 }
 
 exports.isContext = function isContext(obj) {
@@ -34,6 +42,9 @@ exports.isContext = function isContext(obj) {
 
 exports.createContext = () => new Context();
 exports.createRequestContext = (req, res) => new RequestContext(req, res);
+
+exports.globalCtx = new Context();
+exports.globalCtx.isLongLived = true; // prevent transactions
 
 exports.wrap = function wrapInContext(func) {
   return function wrappedHandler(req, res, next) {

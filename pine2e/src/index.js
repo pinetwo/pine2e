@@ -30,7 +30,7 @@ exports.expandCb = require('./utils/expand-multi-param-callback');
 exports.rescueUniqueViolation = require('./utils/unique-violation');
 
 var context = exports.context = require('./bits/context');
-exports.globalCtx = context.createContext();
+exports.globalCtx = context.globalCtx;
 exports.wrap = context.wrap;
 
 // for running tests

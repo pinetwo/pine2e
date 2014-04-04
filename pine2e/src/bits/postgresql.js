@@ -25,6 +25,8 @@ exports.withTx = withTx;
 exports.requiresTx = requiresTx;
 exports.requestRequiresTx = requestRequiresTx;
 
+exports.listen = listen;
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // basic PostgreSQL configuration and operations
@@ -62,7 +64,9 @@ function connect() {
 // plugin hooks
 
 function initContext(ctx) {
-  ctx.pgTxClient = null; // a promise for [client, done]
+  ctx.pgTx = false;
+  ctx.pgClientRefs = 0;
+  ctx.pgClient = null; // a promise for [client, done]
 }
 
 function disposeContext(ctx) {
@@ -74,16 +78,38 @@ function disposeContext(ctx) {
 // transaction and connection management
 
 function isInsideTx(ctx) {
-  return !!ctx.pgTxClient;
+  return !!ctx.pgTx;
+}
+
+function allocatePgConnection(ctx) {
+  ++ctx.pgClientRefs;
+
+  if (!ctx.pgClient) {
+    ctx.pgClient = connect();
+  }
+
+  return ctx.pgClient;
+}
+
+function freePgConnection(ctx) {
+  if (ctx.pgClientRefs === 0)
+    throw new Error("freePgConnection without a matching allocatePgConnection");
+  if (--ctx.pgClientRefs === 0) {
+    var client = ctx.pgClient;
+    ctx.pgClient = null;
+    return client.spread((client, done) => done());
+  } else {
+    return when(null);
+  }
 }
 
 function beginTx(ctx) {
   if (ctx.isLongLived) {
     throw new Error("Refusing to start a PostgreSQL transaction in a long-lived context");
   }
-  if (!ctx.pgTxClient) {
-    var clientP = ctx.pgTxClient = connect();
-    return clientP.spread((client) => execute(client, "BEGIN"));
+  if (!ctx.pgTx) {
+    ctx.pgTx = true;
+    return allocatePgConnection(ctx).spread((client) => execute(client, "BEGIN"));
   } else {
     return when(null);
   }
@@ -98,15 +124,12 @@ function rollbackTx(ctx) {
 }
 
 function finishTransaction(ctx, commit) {
-  if (!ctx.pgTxClient)
+  if (ctx.pgTx) {
+    var command = (commit ? "COMMIT" : "ROLLBACK");
+    return ctx.pgClient.spread((client, done) => execute(client, command)).finally(() => freePgConnection(ctx));
+  } else {
     return when();
-
-  var command = (commit ? "COMMIT" : "ROLLBACK");
-
-  var client = ctx.pgTxClient;
-  ctx.pgTxClient = null;
-
-  return client.spread((client, done) => execute(client, command).finally(done));
+  }
 }
 
 function resolveParamsAndExecute(client, sql, params=[]) {
@@ -114,8 +137,8 @@ function resolveParamsAndExecute(client, sql, params=[]) {
 }
 
 function queryRaw(ctx, sql, params) {
-  if (ctx.pgTxClient)
-    return ctx.pgTxClient.spread((client) => resolveParamsAndExecute(client, sql, params));
+  if (ctx.pgClient)
+    return ctx.pgClient.spread((client) => resolveParamsAndExecute(client, sql, params));
   else
     return connect().spread((client, done) => resolveParamsAndExecute(client, sql, params).finally(done));
 }
@@ -190,4 +213,20 @@ function requestRequiresTx(req, res, next) {
     // the transaction will end when the request ends
     beginTx(ctx).catch(next).then(() => next());
   }
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// pub/sub
+
+// no way to stop listening currently
+function listen(ctx, channel, func) {
+  allocatePgConnection(ctx).done();
+  query(ctx, "LISTEN " + channel).done();
+  ctx.pgClient.spread((client, done) => {
+    client.on('notification', (msg) => {
+      console.log(msg);
+      func(msg.payload);
+    });
+  });
 }
