@@ -1,14 +1,6 @@
 exports.version = require(__dirname + '/../package.json').version;
 
-var when = exports.when = require('when');
-when.sequence = require('when/sequence');
-when.pipeline = require('when/pipeline');
-when.parallel = require('when/parallel');
-when.poll = require('when/poll');
-when.fn = require('when/function');
-when.node = require('when/node');
-when.callbacks = require('when/callbacks');
-when.guard = require('when/guard');
+exports.when = require('./whenx');
 
 exports.nodeify = require('nodeify');
 
