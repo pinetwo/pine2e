@@ -109,11 +109,15 @@ function finishTransaction(ctx, commit) {
   return client.spread((client, done) => execute(client, command).finally(done));
 }
 
+function resolveParamsAndExecute(client, sql, params=[]) {
+  return when.all(params).then((resolvedParams) => execute(client, sql, resolvedParams));
+}
+
 function queryRaw(ctx, sql, params) {
   if (ctx.pgTxClient)
-    return ctx.pgTxClient.spread((client) => execute(client, sql, params));
+    return ctx.pgTxClient.spread((client) => resolveParamsAndExecute(client, sql, params));
   else
-    return connect().spread((client, done) => execute(client, sql, params).finally(done));
+    return connect().spread((client, done) => resolveParamsAndExecute(client, sql, params).finally(done));
 }
 
 
