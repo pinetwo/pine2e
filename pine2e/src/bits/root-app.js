@@ -7,8 +7,8 @@ module.exports = createRootApp;
 function createRootApp(libDir) {
   var app = express();
 
-  require('./bits/express-init')(app);
-  require('./bits/express-dirs')(app);
+  require('./express-init')(app);
+  require('./express-dirs')(app);
 
   app.dirs.root = Path.dirname(libDir);
   app.dirs.lib = libDir;
