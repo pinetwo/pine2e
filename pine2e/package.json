@@ -17,6 +17,7 @@
     "pg": "^2.11.1",
     "when": "^3.0.1",
     "nodeify": "^1.0.0",
+    "express-promise": "^0.1.9",
     "lodash": "^2.4.1"
   },
   "devDependencies": {

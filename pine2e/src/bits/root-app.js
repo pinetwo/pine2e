@@ -22,5 +22,7 @@ function createRootApp(libDir) {
     next();
   });
 
+  app.use(require('express-promise')());
+
   return app;
 }
