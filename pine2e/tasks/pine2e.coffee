@@ -1,5 +1,7 @@
 pine2e = require('../lib/index')
 shell = require('shelljs')
+temp = require('temp')
+fs = require('fs')
 
 module.exports = (grunt) ->
 
@@ -56,8 +58,8 @@ module.exports = (grunt) ->
     vars1 = pine2e.readEnv(env1)
     vars2 = pine2e.readEnv(env2)
     grunt.fatal("HEROKU_APP config var not defined for #{env1} in .env.#{env1}") unless vars1.HEROKU_APP
-    grunt.fatal("HEROKU_APP config var not defined for #{env2} in .env.#{env2}") unless vars2.HEROKU_APP
-    grunt.fatal("HEROKU_APP is the same for #{env1} and #{env2}") if vars1.HEROKU_APP == vars2.HEROKU_APP
+    grunt.fatal("HEROKU_APP or DATABASE_URL config var not defined for #{env2} in .env.#{env2}") unless vars2.HEROKU_APP or vars2.DATABASE_URL
+    grunt.fatal("HEROKU_APP is the same for #{env1} and #{env2}") if vars2.HEROKU_APP and (vars1.HEROKU_APP == vars2.HEROKU_APP)
 
     grunt.fatal("Refusing to copy into #{env2}") if env2 == 'production'
 
@@ -72,12 +74,42 @@ module.exports = (grunt) ->
 
       grunt.log.writeln("Backup URL: #{url}")
 
-      grunt.log.writeln("Restoring into #{vars2.HEROKU_APP}...")
-      grunt.util.spawn { cmd: whichHeroku(), args: ['pgbackups:restore', '--app', vars2.HEROKU_APP, 'DATABASE_URL', url], opts: { stdio: 'inherit' } }, (err, result, code) =>
-        return done(err) if err
+      if vars2.HEROKU_APP
+        grunt.log.writeln("Restoring into #{vars2.HEROKU_APP}...")
+        grunt.util.spawn { cmd: whichHeroku(), args: ['pgbackups:restore', '--app', vars2.HEROKU_APP, 'DATABASE_URL', url], opts: { stdio: 'inherit' } }, (err, result, code) =>
+          return done(err) if err
 
-        grunt.log.ok()
-        done()
+          grunt.log.ok()
+          done()
+
+      else
+        options2 = pine2e.parsePgOptions(vars2.DATABASE_URL)
+        pine2e.applyPgOptions(options2)
+
+        unless pg_restore = shell.which('pg_restore')
+          grunt.fatal('pg_restore not found in PATH; pg_restore is required to run p2e:db:copy into a local env')
+        unless curl = shell.which('curl')
+          grunt.fatal('curl not found in PATH; curl is required to run p2e:db:copy into a local env')
+
+        file = temp.path(prefix: 'pg-latest-', suffix: '.dump')
+        process.on('exit', -> (fs.unlinkSync(file) if fs.existsSync(file)))
+
+        grunt.log.writeln("Downloading into #{file} ...")
+
+        grunt.util.spawn { cmd: curl, args: ['-o', file, url], opts: { stdio: 'inherit' } }, (err, result, code) =>
+          return done(err) if err
+
+          grunt.log.writeln("Restoring into #{options2.host}/#{options2.dbname}...")
+
+          args = ['--verbose', '--clean', '--no-owner', '--no-acl', '-d', options2.dbname, file]
+
+          grunt.verbose.writeln([pg_restore].concat(args).join(' '))
+
+          grunt.util.spawn { cmd: pg_restore, args: args, opts: { stdio: 'inherit' } }, (err, result, code) =>
+            return done(err) if err
+            grunt.log.ok()
+            done()
+          # done()
 
 
   grunt.registerTask "p2e:deploy", "Deploy Pine2e app", (env) ->
