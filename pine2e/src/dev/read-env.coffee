@@ -14,8 +14,8 @@ readFile = (name, data) ->
 
 exports.readEnv = readEnv = (env) ->
   data = {}
-  readFile(".env", data)
-  readFile(".env.#{env}", data)
+  fileName = (if env is 'dev' then '.env' else ".env.#{env}")
+  readFile(fileName, data)
   return data
 
 exports.applyEnv = (env) ->
