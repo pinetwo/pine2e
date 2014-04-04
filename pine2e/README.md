@@ -1,31 +1,74 @@
 # pine2e
 
-Pinetwo's pluggable web stack based on Express.js and PostgreSQL.
+Pinetwo's pluggable web stack based on Express.js and PostgreSQL. Runs on Heroku (and similar environments).
+
+Under development. Normally, parts of the stack are developed elsewhere and then extracted from production apps.
 
 
-## Installation
+## Configuration and environments
 
-    npm install pine2e
+Pine2e apps follow [Heroku's twelve-factor apps methodology](http://12factor.net). In particular, the app's configuration is loaded from environment variables like `PORT` and `DATABASE_URL`. (Unlike, say, Rails, which loads its configuration from YAML files like `config/database.yml`.)
+
+Normally, you set up a `Procfile` and use the Foreman gem to run the app. Foreman loads the environment variables from a file called `.env`, although the file name can be provided from the command line.
+
+Pine2e embraces the notion of `.env` file, extending the idea to multiple _environments_ (configurations) of the app. You can use any environment names you want, but the following four are special and conventional:
+
+* `dev`, for running the app during development
+* `test`, to use when running tests (its database gets be wiped out by each test run)
+* `staging`
+* `production` (Pine2e will take extra care when deploying to production, and will refuse to perform destructive actions with production database)
+
+(Any other environment names you might use are treated exactly like `staging`.)
+
+The configuration for the dev environment is stored in `.env` (so that it's the default one used by Foreman), and other environments can be configured in `.env.test`, `.env.staging`, `.env.production`, etc.
+
+In addition to the normal Heroku variables you may set up via Heroku commands and find in `heroku config -s` output, Pine2e defines the following ones:
+
+* `HEROKU_APP` specifies the name of the Heroku app for the given environment (frequently passed as `--app $HEROKU_APP` to Heroku commands); this must be specified for staging and production envs (i.e. `.env.staging` and `.env.production`), otherwise many Grunt commands won't work
+* `GIT_REMOTE` specifies the name of the Git deployment remote for the given environment, if it's different from the name of the environment
 
 
-## Creating Pine2e apps
+## How to create a Pine2e app
 
-Predefined environments:
+Create a typical Express.js app (be sure to add `package.json`), cd into its directory and run:
 
-* dev (used by default for migrations, for dumping schema etc)
-* staging (no special treatment currently)
-* production (additional precautions for production deployment, db:copy refuses to overwrite production db)
+    npm install pine2e --save
+    npm install grunt --save-dev
 
-Store per-environments Heroku config vars in e.g. `.env.staging`, `.env.production`, etc.
+Put this into Gruntfile.js:
+
+    module.exports = function(grunt) {
+
+      grunt.initConfig({
+      });
+
+      grunt.loadNpmTasks('pine2e');
+
+    };
+
+Set up staging and production Heroku apps, for each one:
+
+1. Create the app.
+2. Add it as a Git remote locally (preferably, use `staging` and `production` remote names).
+3. Add a PostgreSQL database.
+4. Promote the PostgreSQL database into `DATABASE_URL`.
+5. Add any other add-ons you need.
+
+Dump Heroku config into local env files:
+
+    heroku config -s --app myapp-production >.env.production
+    echo "HEROKU_APP=myapp-production" >>.env.production
+
+    heroku config -s --app myapp-staging >.env.staging
+    echo "HEROKU_APP=myapp-staging" >>.env.staging
+
+You can also set `GIT_REMOTE` to the name of the Heroku remotes, if they don't match the environment names (“staging”, “production”).
+
+Set up `.env` for the local development environment. In many cases, you want to copy `.env.staging` into `.env` and then customize it.
 
 Run the app using:
 
-    foreman start -f Procfile.dev -e .env.staging
-
-Aside from Heroku config variables, you can set:
-
-* `HEROKU_APP` (must be set to run any Heroku-dependent commands, excluding p2e:deploy)
-* `GIT_REMOTE` (defaults to the environment's name)
+    foreman start -e .env
 
 
 ## Grunt tasks
