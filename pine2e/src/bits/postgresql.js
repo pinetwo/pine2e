@@ -33,10 +33,9 @@ exports.requestRequiresTx = requestRequiresTx;
 var pg = exports.pg = require('pg');
 configurePg(pg);
 
-// retrieve now to report config errors on startup
-var dbConnectionString = getConfig('DATABASE_URL');
+var dbConnectionString;
 
-var connect = nodefn.lift(pg.connect.bind(pg), dbConnectionString);
+var pgConnectRaw = nodefn.lift(pg.connect.bind(pg));
 
 var execute = when.lift(function executeInternal(client, sql, params=[]) {
   var query = nodefn.lift(client.query);
@@ -49,6 +48,13 @@ function configurePg(pg) {
   // treat TIMESTAMP WITHOUT TIME ZONE values as UTC dates, and return moment.js objects
   var moment = require('moment')
   pg.types.setTypeParser(1114, (stringValue) => moment.utc(stringValue));
+}
+
+function connect() {
+  if (!dbConnectionString) {
+    dbConnectionString = getConfig('DATABASE_URL');
+  }
+  return pgConnectRaw(dbConnectionString);
 }
 
 
