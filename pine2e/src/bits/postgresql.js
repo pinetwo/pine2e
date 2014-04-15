@@ -125,6 +125,7 @@ function rollbackTx(ctx) {
 
 function finishTransaction(ctx, commit) {
   if (ctx.pgTx) {
+    ctx.pgTx = false;
     var command = (commit ? "COMMIT" : "ROLLBACK");
     return ctx.pgClient.spread((client, done) => execute(client, command)).finally(() => freePgConnection(ctx));
   } else {
