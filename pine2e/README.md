@@ -11,6 +11,12 @@ Create a new folder:
 
     mkdir example
     cd example
+    git init
+
+Create .gitignore:
+
+    .env
+    .env.*
 
 Create package.json:
 
