@@ -1,4 +1,4 @@
-pine2e = require('../lib/index')
+pine2e = require('../lib/index-generic')
 shell = require('shelljs')
 temp = require('temp')
 fs = require('fs')

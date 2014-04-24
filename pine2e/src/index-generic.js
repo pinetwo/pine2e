@@ -4,22 +4,8 @@ exports.when = require('./whenx');
 
 exports.nodeify = require('nodeify');
 
-var express = exports.express = require('./bits/express-with-patches');
-
-exports.rootApp = null;
-exports.initializeRootApp = function() {
-  var rootApp = require('./bits/app').initializeRootApp.apply(null, arguments);
-  exports.rootApp = rootApp;
-  return rootApp;
-};
-exports.createSubapp = require('./bits/app').createSubapp;
-
 exports.parsePgOptions = require('./utils/parse-pg-options');
 exports.applyPgOptions = require('./utils/apply-pg-options');
-
-var install = exports.install = require('./bits/plugins').install;
-var pg = exports.pg = require('./bits/postgresql');
-install(pg);
 
 exports.abort = require('./utils/abort');
 exports.init  = require('./utils/init');
@@ -34,11 +20,6 @@ exports.argsToSqlParams  = require('./utils/query-to-sql-params').argsToSqlParam
 // most likely will be removed in the future
 exports.expandCb = require('./utils/expand-multi-param-callback');
 exports.rescueUniqueViolation = require('./utils/unique-violation');
-
-var context = exports.context = require('./bits/context');
-exports.globalCtx = context.globalCtx;
-exports.wrap = context.wrap;
-exports.app =
 
 // for running tests
 exports.readEnv = require('./dev/read-env').readEnv;

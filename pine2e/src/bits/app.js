@@ -19,6 +19,7 @@ function initializeRootApp(rootDir, libDir) {
   app.dirs.lib = app.subdir('root', 'lib');
   app.dirs.assets = app.subdir('root', 'assets');
   app.dirs.views = app.subdir('root', 'views');
+  app.dirs.bower = app.subdir('root', 'bower_components');
 
   app.configModule = require(app.subdir('lib', 'config'));
   app.getConfig = app_getConfig.bind(app);
@@ -89,6 +90,9 @@ function configureRootApp(app) {
 
   // static assets
   app.use('/assets', express.static(app.subdir('assets')));
+  if (fs.existsSync(app.subdir('bower'))) {
+    app.use('/bower_components', express.static(app.subdir('bower')));
+  }
 
   // request parsers
   app.use(express.cookieParser());
