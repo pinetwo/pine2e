@@ -243,6 +243,10 @@ Run the app in autorestarting mode using:
 
     foreman start -f Procfile.dev
 
+Lock dependency versions for reproducable deployments (you need to rerun this command after any package.json dependency changes):
+
+    npm shrinkwrap
+
 Commit everything into Git, then deploy to Heroku using:
 
     grunt p2e:deploy:staging
