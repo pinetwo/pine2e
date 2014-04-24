@@ -6,7 +6,13 @@ exports.nodeify = require('nodeify');
 
 var express = exports.express = require('./bits/express-with-patches');
 
-exports.createRootApp = require('./bits/root-app');
+exports.rootApp = null;
+exports.initializeRootApp = function() {
+  var rootApp = require('./bits/app').initializeRootApp.apply(null, arguments);
+  exports.rootApp = rootApp;
+  return rootApp;
+};
+exports.createSubapp = require('./bits/app').createSubapp;
 
 exports.parsePgOptions = require('./utils/parse-pg-options');
 exports.applyPgOptions = require('./utils/apply-pg-options');
@@ -32,6 +38,7 @@ exports.rescueUniqueViolation = require('./utils/unique-violation');
 var context = exports.context = require('./bits/context');
 exports.globalCtx = context.globalCtx;
 exports.wrap = context.wrap;
+exports.app =
 
 // for running tests
 exports.readEnv = require('./dev/read-env').readEnv;

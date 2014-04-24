@@ -30,6 +30,60 @@ In addition to the normal Heroku variables you may set up via Heroku commands an
 
 ## How to create a Pine2e app
 
+Create a new folder:
+
+    mkdir example
+    cd example
+
+Create package.json:
+
+    {
+      "name": "example",
+      "version": "0.0.0"
+    }
+
+Install Pine2e and Grunt:
+
+    npm install pine2e --save
+    npm install grunt grunt-es6-transpiler --save-dev
+
+Create Gruntfile.js:
+
+    module.exports = function(grunt) {
+
+      grunt.initConfig({
+        'es6-transpiler': {
+          lib: {
+            files: {
+              expand: true,
+              cwd: 'src/',
+              src: '**/*.js',
+              dest: 'lib/'
+            }
+          }
+        }
+      });
+
+      grunt.loadNpmTasks('pine2e');
+      grunt.loadNpmTasks('grunt-es6-transpiler');
+
+    };
+
+This enables `p2e:...` tasks, and also ES6 transpiler will compile src/ into lib/.
+
+Create server.js:
+
+    require('./app').startServer();
+
+Create app.js:
+
+    module.exports = require('pine2e').initializeApp(__dirname);
+
+Create src/config.js:
+
+
+
+
 Create a typical Express.js app (be sure to add `package.json`), cd into its directory and run:
 
     npm install pine2e --save
