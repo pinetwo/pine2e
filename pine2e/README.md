@@ -286,6 +286,17 @@ In addition to the normal Heroku variables you may set up via Heroku commands an
 
 Be sure to `npm install -g grunt-cli` if you haven't already.
 
+To create a migration:
+
+    grunt p2e:new:migration:create-widget
+
+To execute migrations:
+
+    grunt p2e:migrate:dev
+    grunt p2e:migrate:test
+    grunt p2e:migrate:staging
+    grunt p2e:migrate:production
+
 To dump the schema of ‘dev’ environment's database into schema.sql:
 
     grunt p2e:schema:dump

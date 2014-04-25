@@ -27,6 +27,9 @@ exports.requestRequiresTx = requestRequiresTx;
 
 exports.listen = listen;
 
+exports.connect = connect;
+exports.connectCustom = connectCustom;
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // basic PostgreSQL configuration and operations
@@ -56,6 +59,10 @@ function connect() {
   if (!dbConnectionString) {
     dbConnectionString = getConfig('DATABASE_URL');
   }
+  return pgConnectRaw(dbConnectionString);
+}
+
+function connectCustom(dbConnectionString) {
   return pgConnectRaw(dbConnectionString);
 }
 

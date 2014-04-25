@@ -1,7 +1,13 @@
 pine2e = require('../lib/index-generic')
+W = pine2e.when
 shell = require('shelljs')
 temp = require('temp')
+Path = require('path')
 fs = require('fs')
+moment = require('moment')
+megrim = W.node.lift(require('megrim'))
+
+MIGRATIONS_DIR = 'migrations'
 
 module.exports = (grunt) ->
 
@@ -167,3 +173,38 @@ module.exports = (grunt) ->
 
     grunt.util.spawn { cmd: whichHeroku(), args: args, opts: { stdio: 'inherit' } }, (err, result, code) =>
       done(err)
+
+
+  grunt.registerTask "p2e:new:migration", "Create a new migration with the given name", (name) ->
+    grunt.fatal("Missing migration name in #{@nameArgs}, use e.g. #{@nameArgs}:create-widgets") unless name
+
+    dir = MIGRATIONS_DIR
+    fileName = moment().format('YYYYMMDDHHmmss') + '-' + name + '.sql'
+    filePath = Path.join(dir, fileName)
+
+    if !fs.existsSync(dir)
+      fs.mkdirSync(dir)
+
+    fs.writeFileSync(filePath, '')
+
+    grunt.log.ok().ok('created ' + filePath)
+
+    if subl = shell.which('subl')
+      done = @async()
+      grunt.log.writeln('subl ' + filePath)
+      grunt.util.spawn({ cmd: subl, args: [filePath], opts: { stdio: 'inherit' }}, (err, result, code) => done(err))
+
+
+  grunt.registerTask "p2e:migrate", "Run migration in the given environment", (env) ->
+    requireEnvArg(this, env)
+    vars = pine2e.readEnv(env)
+    grunt.fatal("DATABASE_URL config var not defined for #{env}") unless vars.DATABASE_URL
+
+    done = @async()
+    pg = require('../lib/bits/postgresql')
+    pg.connectCustom(vars.DATABASE_URL).spread((connection, releaseConnection) =>
+      megrim(MIGRATIONS_DIR, connection).finally(releaseConnection)
+    ).then((result) =>
+      for item in result
+        grunt.log.ok(item)
+    ).then(done).catch(done)
