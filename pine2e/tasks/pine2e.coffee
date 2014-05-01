@@ -9,6 +9,22 @@ megrim = W.node.lift(require('megrim'))
 
 MIGRATIONS_DIR = 'migrations'
 
+MIGRATION_TEMPLATE = """
+CREATE TYPE WIDGET_TYPE AS ENUM('bolt', 'screw');
+
+CREATE TABLE widgets (
+    id SERIAL PRIMARY KEY,
+    parent_id INTEGER NULL REFERENCES widgets ON DELETE CASCADE,
+
+    name VARCHAR NOT NULL,
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO widgets(name) VALUES('fidget');
+"""
+
 module.exports = (grunt) ->
 
   requireEnvArg = (t, env) ->
@@ -185,7 +201,7 @@ module.exports = (grunt) ->
     if !fs.existsSync(dir)
       fs.mkdirSync(dir)
 
-    fs.writeFileSync(filePath, '')
+    fs.writeFileSync(filePath, MIGRATION_TEMPLATE)
 
     grunt.log.ok().ok('created ' + filePath)
 
