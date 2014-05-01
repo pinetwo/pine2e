@@ -239,6 +239,8 @@ Dump Heroku config into local env files:
     heroku config -s --app example >.env.production
     echo "HEROKU_APP=example" >>.env.production
 
+Append `?ssl=1` to each DATABASE_URL (in `.env.staging` and `.env.production`).
+
 You can also set `GIT_REMOTE` to the name of the Heroku remotes, if they don't match the environment names (“staging”, “production”).
 
 Run the app using:
