@@ -46,11 +46,26 @@ exports.createRequestContext = (req, res) => new RequestContext(req, res);
 exports.globalCtx = new Context();
 exports.globalCtx.isLongLived = true; // prevent transactions
 
-exports.wrap = function wrapInContext(func) {
+exports.wrap = wrapInContext;
+exports.wrapAll = wrapAllInContext;
+
+function wrapInContext(func) {
   return function wrappedHandler(req, res, next) {
     var result = func(req.ctx, req, res, next);
     if (when.isPromiseLike(result)) {
       when(result).done();
     }
   };
+}
+
+function wrapAllInContext(obj) {
+  var result = {};
+  for (var k in obj) {
+    var v = obj[k];
+    if (typeof(v) === 'function') {
+      v = wrapInContext(v);
+    }
+    result[k] = v;
+  }
+  return result;
 }

@@ -24,3 +24,4 @@ install(pg);
 var context = exports.context = require('./bits/context');
 exports.globalCtx = context.globalCtx;
 exports.wrap = context.wrap;
+exports.wrapAll = context.wrapAll;
