@@ -4,6 +4,8 @@ exports.when = require('./whenx');
 
 exports.nodeify = require('nodeify');
 
+exports.express = require('./bits/express-with-patches');
+
 exports.parsePgOptions = require('./utils/parse-pg-options');
 exports.applyPgOptions = require('./utils/apply-pg-options');
 
@@ -24,3 +26,5 @@ exports.rescueUniqueViolation = require('./utils/unique-violation');
 // for running tests
 exports.readEnv = require('./dev/read-env').readEnv;
 exports.applyEnv = require('./dev/read-env').applyEnv;
+
+exports.test = require('supertest');

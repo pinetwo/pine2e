@@ -2,7 +2,6 @@
 whenx = require "../#{process.env.JSLIB or 'lib'}/whenx"
 
 describe 'whenx', ->
-
   describe '.cb', ->
     it "should call cb(null, value) on fulfilment", (done) ->
       whenx(42).cb (err, value) ->

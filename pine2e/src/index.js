@@ -1,9 +1,6 @@
 module.exports = exports = require('./index-generic')
 
-// express & root app
-
-var express = exports.express = require('./bits/express-with-patches');
-
+// root app
 exports.rootApp = null;
 exports.initializeRootApp = function() {
   var rootApp = require('./bits/app').initializeRootApp.apply(null, arguments);
