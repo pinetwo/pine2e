@@ -233,7 +233,6 @@ function listen(ctx, channel, func) {
   query(ctx, "LISTEN " + channel).done();
   ctx.pgClient.spread((client, done) => {
     client.on('notification', (msg) => {
-      console.log(msg);
       func(msg.payload);
     });
   });
