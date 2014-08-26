@@ -84,7 +84,8 @@ function configureRootApp(app) {
   } else if (env === 'test') {
     // don't log
     app.use(express.errorHandler())
-  } else {
+  } else if (process.env.LOG_REQUESTS) {
+    // Heroku already logs requests, so this is off by default
     app.use(express.logger());
   }
 
